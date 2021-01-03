@@ -1,0 +1,52 @@
+import org.apache.tools.ant.filters.ReplaceTokens
+
+buildscript {
+    repositories {
+        maven { url 'https://plugins.gradle.org/m2/' }
+    }
+}
+
+plugins {
+    id 'java'
+    id 'me.bristermitten.pdm' version '0.0.29'
+}
+
+group = 'com.nextplugins'
+version = '1.0-SNAPSHOT'
+
+sourceCompatibility = '1.8'
+targetCompatibility = '1.8'
+
+tasks.jar.dependsOn project.tasks.getByName('pdm')
+
+repositories {
+    mavenCentral()
+
+    maven { url = 'https://hub.spigotmc.org/nexus/content/repositories/snapshots/' }
+    maven { url = 'https://oss.sonatype.org/content/groups/public/' }
+
+    maven { url = 'https://jitpack.io/' }
+}
+
+dependencies {
+    compileOnly 'org.spigotmc:spigot-api:1.12.2-R0.1-SNAPSHOT'
+
+    pdm 'commons-io:commons-io:2.6'
+    pdm 'org.tukaani:xz:1.8'
+    pdm 'org.brotli:dec:0.1.2'
+    pdm 'com.github.luben:zstd-jni:1.4.8-1'
+    pdm 'org.apache.commons:commons-compress:1.20'
+    pdm 'com.github.SaiintBrisson:command-framework:1.1.0'
+    pdm 'com.github.eikefab:ConfigValue:1.0.2'
+
+    def lombok = 'org.projectlombok:lombok:1.18.16'
+
+    compileOnly lombok
+    annotationProcessor lombok
+}
+
+processResources {
+    from(sourceSets.main.resources.srcDirs) {
+        filter ReplaceTokens, tokens: [version: version]
+    }
+}
