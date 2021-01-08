@@ -29,6 +29,7 @@ public final class BackupService {
         List<File> fileList = new ArrayList<>();
 
         for (Plugin plugin : Bukkit.getPluginManager().getPlugins()) {
+            if (!plugin.getName().equalsIgnoreCase("NextBackup"))
             fileList.add(plugin.getDataFolder());
         }
 

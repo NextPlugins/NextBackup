@@ -5,10 +5,12 @@ import com.nextplugins.nextbackup.service.Compressor;
 import io.github.eikefs.minecraft.lib.ConfigValue;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.SneakyThrows;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitRunnable;
 
 import java.io.File;
+import java.util.concurrent.CompletableFuture;
 import java.util.logging.Logger;
 
 @AllArgsConstructor
@@ -20,18 +22,19 @@ public class TimedBackupTask extends BukkitRunnable {
     private final BackupService service;
     private final JavaPlugin plugin;
 
+    @SneakyThrows
     @Override
     public void run() {
         final Logger log = getPlugin().getLogger();
+        final File backupFile = service.getBackupFile();
 
         log.warning("Creating backup! Server may lag a bit...");
 
-        try {
-            Compressor.compress(service.getBackupFile(), new File(getPlugin().getDataFolder(), "backups"));
-        } catch (Exception exception) {
-            exception.printStackTrace();
-            cancel();
-        }
+        Compressor.compress(new File(getPlugin().getDataFolder(), "backups"), backupFile);
+
+        backupFile.delete();
+
+        log.info("Done! Backup created.");
     }
 
 }

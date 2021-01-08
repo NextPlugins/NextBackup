@@ -1,36 +1,55 @@
 package com.nextplugins.nextbackup.service;
 
 import org.apache.commons.compress.archivers.sevenz.SevenZArchiveEntry;
+import org.apache.commons.compress.archivers.sevenz.SevenZFile;
 import org.apache.commons.compress.archivers.sevenz.SevenZOutputFile;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.nio.file.Files;
 import java.util.Calendar;
 
-public class Compressor {
+public final class Compressor {
 
-    public static void compress(File target, File folder) {
-        final String fileName = fileName() + ".7z";
+    public static void compress(File folder, File... files) throws IOException {
+        try (SevenZOutputFile out = new SevenZOutputFile(new File(folder, fileName()))){
+            for (File file : files){
+                addToArchiveCompression(out, file, ".");
+            }
+        }
+    }
 
-        try (SevenZOutputFile outputFile = new SevenZOutputFile(new File(folder, fileName))) {
-            Files.walk(target.toPath()).forEach(path -> {
-                File file = path.toFile();
+    private static void addToArchiveCompression(SevenZOutputFile out, File file, String dir) {
+        String name = dir + File.separator + file.getName();
 
-                if (!file.isDirectory()) {
-                    try (FileInputStream inputStream = new FileInputStream(file)) {
-                        SevenZArchiveEntry entry = outputFile.createArchiveEntry(file, file.toString());
+        try {
+            if (file.isFile()) {
+                SevenZArchiveEntry entry = out.createArchiveEntry(file, name);
+                out.putArchiveEntry(entry);
 
-                        outputFile.putArchiveEntry(entry);
-                        outputFile.write(Files.readAllBytes(file.toPath()));
-                        outputFile.closeArchiveEntry();
-                    } catch (Exception exception) {
-                        exception.printStackTrace();
+                try (FileInputStream in = new FileInputStream(file)) {
+                    byte[] b = new byte[1024];
+                    int count = 0;
+
+                    while ((count = in.read(b)) > 0) {
+                        out.write(b, 0, count);
+                    }
+
+                    out.closeArchiveEntry();
+                } catch (Exception exception) {
+                    exception.printStackTrace();
+                }
+            } else if (file.isDirectory()) {
+                File[] children = file.listFiles();
+
+                if (children != null) {
+                    for (File child : children) {
+                        addToArchiveCompression(out, child, name);
                     }
                 }
-            });
-
-            outputFile.finish();
+            }
         } catch (Exception exception) {
             exception.printStackTrace();
         }

@@ -17,7 +17,7 @@ public final class NextBackup extends JavaPlugin {
     @Override
     public void onEnable() {
         PluginDependencyManager.of(this).loadAllDependencies().thenRun(() -> {
-            new TimedBackupTask(getBackupService(), this).runTaskTimer(this, 60, 20);
+            new TimedBackupTask(getBackupService(), this).runTaskTimer(this, 60, 120);
         });
 
         this.backupService = new BackupService(this);
