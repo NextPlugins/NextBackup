@@ -1,7 +1,6 @@
 name: NextBackup
 version: @version@
 main: com.nextplugins.nextbackup.NextBackup
-prefix: NBackup
 authors: [Eike, HenryFabio, Gabriel, Yuhtin]
 description: A simple plugin to make timed backups on your server
 website: nextplugins.com
