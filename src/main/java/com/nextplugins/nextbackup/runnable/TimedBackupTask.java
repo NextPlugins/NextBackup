@@ -1,7 +1,8 @@
 package com.nextplugins.nextbackup.runnable;
 
+import com.nextplugins.nextbackup.compressor.ZipCompressor;
 import com.nextplugins.nextbackup.service.BackupService;
-import com.nextplugins.nextbackup.service.Compressor;
+import com.nextplugins.nextbackup.compressor.Compressor;
 import io.github.eikefs.minecraft.lib.ConfigValue;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -10,31 +11,48 @@ import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitRunnable;
 
 import java.io.File;
-import java.util.concurrent.CompletableFuture;
+import java.io.FileOutputStream;
+import java.util.Calendar;
+import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.zip.ZipOutputStream;
 
 @AllArgsConstructor
 @Getter
 public class TimedBackupTask extends BukkitRunnable {
 
-    @ConfigValue("ticks-delay") public static int delay;
+    @ConfigValue("ticks-delay") public static Integer delay;
 
     private final BackupService service;
     private final JavaPlugin plugin;
 
-    @SneakyThrows
     @Override
     public void run() {
         final Logger log = getPlugin().getLogger();
+
         final File backupFile = service.getBackupFile();
+        final File outputFile = new File(plugin.getDataFolder() + "/backups",
+                                        Calendar.getInstance().toInstant().toString().replace(":", "-") + ".zip");
 
-        log.warning("Creating backup! Server may lag a bit...");
+        try (
+            FileOutputStream outputStream = new FileOutputStream(outputFile);
+            ZipOutputStream zipOutput = new ZipOutputStream(outputStream)) {
 
-        Compressor.compress(new File(getPlugin().getDataFolder(), "backups"), backupFile);
+            final long start = System.currentTimeMillis();
 
-        backupFile.delete();
+            log.warning("Creating backup! Server may lag a bit...");
 
-        log.info("Done! Backup created.");
+            // TODO: Async this
+            ZipCompressor.zip(backupFile, backupFile.getName(), zipOutput);
+
+            backupFile.delete();
+
+            log.info(String.format("Backup is done! Time elapsed: %s seconds!", ((System.currentTimeMillis() - start) / 1000)));
+        } catch (Exception exception) {
+            log.log(Level.SEVERE, "Fatal: " + exception.getMessage());
+
+            cancel();
+        }
     }
 
 }

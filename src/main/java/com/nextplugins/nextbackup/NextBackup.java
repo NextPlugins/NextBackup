@@ -3,6 +3,7 @@ package com.nextplugins.nextbackup;
 import com.nextplugins.nextbackup.runnable.TimedBackupTask;
 import com.nextplugins.nextbackup.service.BackupService;
 import io.github.eikefs.minecraft.lib.ConfigValue;
+import io.github.eikefs.minecraft.lib.api.ConfigLoader;
 import io.github.eikefs.minecraft.lib.api.mapper.ConfigMapper;
 import lombok.Getter;
 import me.bristermitten.pdm.PluginDependencyManager;
@@ -17,7 +18,11 @@ public final class NextBackup extends JavaPlugin {
     @Override
     public void onEnable() {
         PluginDependencyManager.of(this).loadAllDependencies().thenRun(() -> {
-            new TimedBackupTask(getBackupService(), this).runTaskTimer(this, 60, 120);
+            ConfigLoader loader = new ConfigLoader(getDataFolder());
+
+            loader.map(TimedBackupTask.class);
+
+            new TimedBackupTask(getBackupService(), this).runTaskTimer(this, TimedBackupTask.delay, 1200);
         });
 
         this.backupService = new BackupService(this);

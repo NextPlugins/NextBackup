@@ -1,4 +1,4 @@
-package com.nextplugins.nextbackup.service;
+package com.nextplugins.nextbackup.compressor;
 
 import org.apache.commons.compress.archivers.sevenz.SevenZArchiveEntry;
 import org.apache.commons.compress.archivers.sevenz.SevenZFile;
@@ -11,6 +11,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.util.Calendar;
 
+@Deprecated
 public final class Compressor {
 
     public static void compress(File folder, File... files) throws IOException {
